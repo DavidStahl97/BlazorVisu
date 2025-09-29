@@ -84,7 +84,6 @@ namespace BlazorVisu.Services
                 {
                     Id = "MACHINE_01",
                     Name = "Machine",
-                    Position = new Position { X = 50, Y = 200 },
                     Status = StationStatus.Running
                 }
             };
@@ -94,14 +93,12 @@ namespace BlazorVisu.Services
             {
                 Id = "SWITCH_01",
                 Name = "Switch 1",
-                Position = new Position { X = 400, Y = 150 },
                 Status = StationStatus.Running
             });
             system.Switches.Add(new Switch
             {
                 Id = "SWITCH_02",
                 Name = "Switch 2",
-                Position = new Position { X = 400, Y = 350 },
                 Status = StationStatus.Running
             });
 
@@ -109,14 +106,12 @@ namespace BlazorVisu.Services
             for (int i = 1; i <= 10; i++)
             {
                 var switchId = i <= 5 ? "SWITCH_01" : "SWITCH_02";
-                var yPos = i <= 5 ? 50 + ((i - 1) * 70) : 400 + ((i - 6) * 70);
 
                 system.Consumers.Add(new Consumer
                 {
                     Id = $"CONSUMER_{i:D2}",
                     Name = $"Consumer {i}",
                     SwitchId = switchId,
-                    Position = new Position { X = 750, Y = yPos },
                     Status = StationStatus.Running
                 });
             }

@@ -8,7 +8,7 @@
 <svg viewBox="0 0 1000 800" class="production-svg">
 
         <!-- Machine -->
-        <g class="station machine" transform="translate(@ProductionData.Machine.Position.X, @ProductionData.Machine.Position.Y)">
+        <g class="station machine" transform="translate(@GetMachinePosition().X, @GetMachinePosition().Y)">
             <!-- Shadow -->
             <rect width="120" height="80" rx="4" x="2" y="2"
                   fill="rgba(0,0,0,0.1)"/>
@@ -28,9 +28,11 @@
         </g>
 
         <!-- Switches -->
-        @foreach (var switchStation in ProductionData.Switches)
+        @for (int i = 0; i < ProductionData.Switches.Count; i++)
         {
-            <g class="station switch" transform="translate(@switchStation.Position.X, @switchStation.Position.Y)">
+            var switchStation = ProductionData.Switches[i];
+            var switchPos = GetSwitchPosition(i);
+            <g class="station switch" transform="translate(@switchPos.X, @switchPos.Y)">
                 <!-- Shadow -->
                 <rect width="80" height="80" rx="4" x="2" y="2"
                       fill="rgba(0,0,0,0.1)"/>
@@ -50,9 +52,11 @@
         }
 
         <!-- Consumers -->
-        @foreach (var consumer in ProductionData.Consumers)
+        @for (int i = 0; i < ProductionData.Consumers.Count; i++)
         {
-            <g class="station consumer" transform="translate(@consumer.Position.X, @consumer.Position.Y)">
+            var consumer = ProductionData.Consumers[i];
+            var consumerPos = GetConsumerPosition(i);
+            <g class="station consumer" transform="translate(@consumerPos.X, @consumerPos.Y)">
                 <!-- Shadow -->
                 <rect width="120" height="80" rx="4" x="2" y="2"
                       fill="rgba(0,0,0,0.1)"/>
@@ -73,12 +77,15 @@
 
         <!-- Connection Lines -->
         <!-- Machine to Switches -->
-        @foreach (var switchStation in ProductionData.Switches)
+        @for (int i = 0; i < ProductionData.Switches.Count; i++)
         {
-            var machineX = ProductionData.Machine.Position.X + 120;
-            var machineY = ProductionData.Machine.Position.Y + 40;
-            var switchX = switchStation.Position.X;
-            var switchY = switchStation.Position.Y + 40;
+            var switchStation = ProductionData.Switches[i];
+            var machinePos = GetMachinePosition();
+            var switchPos = GetSwitchPosition(i);
+            var machineX = machinePos.X + 60; // Machine Mitte (120px/2)
+            var machineY = machinePos.Y + 80; // Machine Unten
+            var switchX = switchPos.X + 40; // Switch Mitte (80px/2)
+            var switchY = switchPos.Y; // Switch Oben
             var isActiveRoute = IsActiveTransportRoute(null, switchStation.Id);
 
             <line x1="@machineX" y1="@machineY" x2="@switchX" y2="@switchY"
@@ -93,15 +100,18 @@
         }
 
         <!-- Switch to Consumers -->
-        @foreach (var consumer in ProductionData.Consumers)
+        @for (int i = 0; i < ProductionData.Consumers.Count; i++)
         {
-            var switchStation = ProductionData.Switches.FirstOrDefault(s => s.Id == consumer.SwitchId);
-            if (switchStation != null)
+            var consumer = ProductionData.Consumers[i];
+            var switchIndex = ProductionData.Switches.FindIndex(s => s.Id == consumer.SwitchId);
+            if (switchIndex >= 0)
             {
-                var switchX = switchStation.Position.X + 80;
-                var switchY = switchStation.Position.Y + 40;
-                var consumerX = consumer.Position.X;
-                var consumerY = consumer.Position.Y + 40;
+                var switchPos = GetSwitchPosition(switchIndex);
+                var consumerPos = GetConsumerPosition(i);
+                var switchX = switchPos.X + 40; // Switch Mitte (80px/2)
+                var switchY = switchPos.Y + 80; // Switch Unten
+                var consumerX = consumerPos.X + 60; // Consumer Mitte (120px/2)
+                var consumerY = consumerPos.Y; // Consumer Oben
                 var isActiveRoute = IsActiveTransportRoute(consumer.SwitchId, consumer.Id);
 
                 <line x1="@switchX" y1="@switchY" x2="@consumerX" y2="@consumerY"
@@ -132,29 +142,19 @@
         overflow: hidden !important;
         margin: 0 !important;
         padding: 0 !important;
-        width: 100vw !important;
-        height: 100vh !important;
     }
 
-    * {
-        box-sizing: border-box;
-    }
-
-    .rz-layout, .rz-body, .rz-content-container, .main {
-        overflow: hidden !important;
-        margin: 0 !important;
+    .rz-content-container {
         padding: 0 !important;
-        width: 100vw !important;
+        margin: 0 !important;
         height: 100vh !important;
+        overflow: hidden !important;
     }
 
     .production-svg {
-        width: 100vw;
+        width: 100%;
         height: 100vh;
-        position: fixed;
-        top: 0;
-        left: 0;
-        z-index: 1000;
+        display: block;
     }
 
     .station-text {
@@ -208,6 +208,63 @@
         ProductionService.TransportRouteChanged -= OnTransportRouteChanged;
     }
 
+    private Position GetMachinePosition()
+    {
+        // Machine horizontal zentriert basierend auf viewBox="0 0 1000 800"
+        // SVG nimmt jetzt den Content-Bereich ein (ohne Sidebar)
+        const int viewBoxWidth = 1000; // ViewBox bleibt gleich
+        const int machineWidth = 120;
+        const int shadowOffset = 2;
+
+        var centeredX = (viewBoxWidth - machineWidth) / 2 - shadowOffset;
+
+        return new Position { X = centeredX, Y = 50 };
+    }
+
+    private Position GetSwitchPosition(int switchIndex)
+    {
+        // Switches horizontal verteilt und zentriert basierend auf viewBox
+        const int viewBoxWidth = 1000;
+        const int switchWidth = 80;
+        const int switchSpacing = 100; // Abstand zwischen Switches
+        const int shadowOffset = 2; // Shadow-Effekt kompensieren
+
+        var totalWidth = (ProductionData.Switches.Count * switchWidth) + ((ProductionData.Switches.Count - 1) * switchSpacing);
+        var startX = (viewBoxWidth - totalWidth) / 2 - shadowOffset; // Zentriert mit Shadow-Kompensation
+
+        return new Position { X = startX + (switchIndex * (switchWidth + switchSpacing)), Y = 300 };
+    }
+
+    private Position GetConsumerPosition(int consumerIndex)
+    {
+        // Consumer-Dimensionen: 120px breit, 80px hoch
+        const int consumerWidth = 120;
+        const int consumerSpacing = 30; // Fester Abstand zwischen Consumern
+
+        var consumersPerSwitch = ProductionData.Consumers.Count / ProductionData.Switches.Count;
+        var switchIndex = consumerIndex / consumersPerSwitch;
+        var consumerInSwitch = consumerIndex % consumersPerSwitch;
+
+        // Berechne X-Position basierend auf Consumer-Breite + Spacing
+        var totalWidthPerConsumer = consumerWidth + consumerSpacing;
+        var groupWidth = consumersPerSwitch * totalWidthPerConsumer - consumerSpacing; // Letzter Consumer braucht kein Spacing
+
+        // Startposition für erste Gruppe - zentriert unter Switch 1
+        var switch1X = GetSwitchPosition(0).X + 40; // Switch Mitte (80px/2)
+        var group1StartX = switch1X - (groupWidth / 2);
+
+        // Startposition für zweite Gruppe - zentriert unter Switch 2
+        var switch2X = GetSwitchPosition(1).X + 40; // Switch Mitte
+        var group2StartX = switch2X - (groupWidth / 2);
+
+        const int shadowOffset = 2; // Shadow-Effekt kompensieren
+
+        var startX = switchIndex == 0 ? group1StartX : group2StartX;
+        var xPosition = startX + (consumerInSwitch * totalWidthPerConsumer) - shadowOffset;
+
+        return new Position { X = (int)xPosition, Y = 550 }; // Alle Consumer unten auf gleicher Höhe
+    }
+
     private string GetStatusColor(StationStatus status) => status switch
     {
         StationStatus.Running => "#4caf50",     // Material Green
@@ -238,31 +295,30 @@
     {
         if (component.CurrentStationId == ProductionData.Machine.Id)
         {
-            // Component is at machine - path to first switch as example
-            var firstSwitch = ProductionData.Switches.FirstOrDefault();
-            if (firstSwitch != null)
-            {
-                var machineX = ProductionData.Machine.Position.X + 120;
-                var machineY = ProductionData.Machine.Position.Y + 40;
-                var switchX = firstSwitch.Position.X;
-                var switchY = firstSwitch.Position.Y + 40;
-                return $"M {machineX} {machineY} L {switchX} {switchY}";
-            }
+            // Component is at machine - path to first switch
+            var machinePos = GetMachinePosition();
+            var switchPos = GetSwitchPosition(0);
+            var machineX = machinePos.X + 120;
+            var machineY = machinePos.Y + 40;
+            var switchX = switchPos.X;
+            var switchY = switchPos.Y + 40;
+            return $"M {machineX} {machineY} L {switchX} {switchY}";
         }
         else if (component.CurrentStationId?.StartsWith("SWITCH") == true)
         {
-            // Component is at switch - path to random consumer of that switch
-            var switchStation = ProductionData.Switches.FirstOrDefault(s => s.Id == component.CurrentStationId);
-            if (switchStation != null)
+            // Component is at switch - path to first consumer of that switch
+            var switchIndex = ProductionData.Switches.FindIndex(s => s.Id == component.CurrentStationId);
+            if (switchIndex >= 0)
             {
-                var consumers = ProductionData.Consumers.Where(c => c.SwitchId == switchStation.Id).ToList();
-                if (consumers.Any())
+                var consumerIndex = ProductionData.Consumers.FindIndex(c => c.SwitchId == component.CurrentStationId);
+                if (consumerIndex >= 0)
                 {
-                    var targetConsumer = consumers.First(); // Could be random
-                    var switchX = switchStation.Position.X + 80;
-                    var switchY = switchStation.Position.Y + 40;
-                    var consumerX = targetConsumer.Position.X;
-                    var consumerY = targetConsumer.Position.Y + 40;
+                    var switchPos = GetSwitchPosition(switchIndex);
+                    var consumerPos = GetConsumerPosition(consumerIndex);
+                    var switchX = switchPos.X + 80;
+                    var switchY = switchPos.Y + 40;
+                    var consumerX = consumerPos.X;
+                    var consumerY = consumerPos.Y + 40;
                     return $"M {switchX} {switchY} L {consumerX} {consumerY}";
                 }
             }
@@ -270,32 +326,31 @@
         else if (component.CurrentStationId?.StartsWith("CONSUMER") == true)
         {
             // Component is at consumer - find its position
-            var consumer = ProductionData.Consumers.FirstOrDefault(c => c.Id == component.CurrentStationId);
-            if (consumer != null)
+            var consumerIndex = ProductionData.Consumers.FindIndex(c => c.Id == component.CurrentStationId);
+            if (consumerIndex >= 0)
             {
-                var switchStation = ProductionData.Switches.FirstOrDefault(s => s.Id == consumer.SwitchId);
-                if (switchStation != null)
+                var consumer = ProductionData.Consumers[consumerIndex];
+                var switchIndex = ProductionData.Switches.FindIndex(s => s.Id == consumer.SwitchId);
+                if (switchIndex >= 0)
                 {
-                    var switchX = switchStation.Position.X + 80;
-                    var switchY = switchStation.Position.Y + 40;
-                    var consumerX = consumer.Position.X;
-                    var consumerY = consumer.Position.Y + 40;
+                    var switchPos = GetSwitchPosition(switchIndex);
+                    var consumerPos = GetConsumerPosition(consumerIndex);
+                    var switchX = switchPos.X + 80;
+                    var switchY = switchPos.Y + 40;
+                    var consumerX = consumerPos.X;
+                    var consumerY = consumerPos.Y + 40;
                     return $"M {switchX} {switchY} L {consumerX} {consumerY}";
                 }
             }
         }
 
-        // Default fallback path
-        var defaultSwitch = ProductionData.Switches.FirstOrDefault();
-        if (defaultSwitch != null)
-        {
-            var machineX = ProductionData.Machine.Position.X + 120;
-            var machineY = ProductionData.Machine.Position.Y + 40;
-            var switchX = defaultSwitch.Position.X;
-            var switchY = defaultSwitch.Position.Y + 40;
-            return $"M {machineX} {machineY} L {switchX} {switchY}";
-        }
-
-        return "M 170 240 L 400 240";
+        // Default fallback path - machine to first switch
+        var defaultMachinePos = GetMachinePosition();
+        var defaultSwitchPos = GetSwitchPosition(0);
+        var defaultMachineX = defaultMachinePos.X + 120;
+        var defaultMachineY = defaultMachinePos.Y + 40;
+        var defaultSwitchX = defaultSwitchPos.X;
+        var defaultSwitchY = defaultSwitchPos.Y + 40;
+        return $"M {defaultMachineX} {defaultMachineY} L {defaultSwitchX} {defaultSwitchY}";
     }
 }

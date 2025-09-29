@@ -31,7 +31,6 @@ namespace BlazorVisu.Models
     {
         public string Id { get; set; } = "MACHINE_01";
         public string Name { get; set; } = "Machine";
-        public Position Position { get; set; } = new();
         public StationStatus Status { get; set; } = StationStatus.Running;
     }
 
@@ -39,7 +38,6 @@ namespace BlazorVisu.Models
     {
         public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
-        public Position Position { get; set; } = new();
         public StationStatus Status { get; set; } = StationStatus.Running;
     }
 
@@ -48,7 +46,6 @@ namespace BlazorVisu.Models
         public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public string SwitchId { get; set; } = string.Empty;
-        public Position Position { get; set; } = new();
         public StationStatus Status { get; set; } = StationStatus.Running;
     }
 
