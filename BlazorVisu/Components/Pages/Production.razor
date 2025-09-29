@@ -20,7 +20,7 @@
 
     <!-- Main Visualization -->
     <RadzenCard>
-        <ProductionVisualization ProductionData="@_productionData" OnStationClicked="@OnStationClicked" />
+        <ProductionVisualization ProductionData="@_productionData" />
     </RadzenCard>
 
     <!-- System Statistics -->
@@ -133,8 +133,4 @@
         _ => "color: #6c757d;"
     };
 
-    private void OnStationClicked(string stationId)
-    {
-        // Static version - no action needed
-    }
 }

@@ -160,19 +160,12 @@
     }
 
     .station {
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .station:hover {
-        filter: brightness(1.1);
-        transform: scale(1.05);
+        /* No hover effects or cursor pointer - static display */
     }
 </style>
 
 @code {
     [Parameter] public ProductionSystem ProductionData { get; set; } = new();
-    [Parameter] public EventCallback<string> OnStationClicked { get; set; }
 
     private List<Component> ComponentsInTransit => ProductionData.ComponentsInTransit;
 
@@ -208,10 +201,5 @@
         }
 
         return "M 170 240 L 400 240";  // Default path
-    }
-
-    private async Task OnStationClick(string stationId)
-    {
-        await OnStationClicked.InvokeAsync(stationId);
     }
 }
