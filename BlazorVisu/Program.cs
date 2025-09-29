@@ -27,13 +27,8 @@ builder.Services.AddServerSideBlazor();
 // Add Radzen services
 builder.Services.AddRadzenComponents();
 
-// Add SignalR
-builder.Services.AddSignalR();
-
 // Add Production services
-builder.Services.AddSingleton<ProductionService>();
-builder.Services.AddSingleton<IProductionService>(provider => provider.GetRequiredService<ProductionService>());
-builder.Services.AddHostedService(provider => provider.GetRequiredService<ProductionService>());
+builder.Services.AddSingleton<IProductionService, ProductionService>();
 
 var app = builder.Build();
 
@@ -51,7 +46,6 @@ app.UseRouting();
 
 app.MapRazorPages();
 app.MapBlazorHub();
-app.MapHub<ProductionHub>("/productionHub");
 app.MapFallbackToPage("/_Host");
 
 try
