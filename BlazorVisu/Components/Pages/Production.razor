@@ -3,99 +3,11 @@
 @using BlazorVisu.Models
 @using BlazorVisu.Services
 @using BlazorVisu.Components.Production
-@using Radzen
-@using Radzen.Blazor
 @inject IProductionService ProductionService
 
 <PageTitle>Production System</PageTitle>
 
-<RadzenStack Gap="1rem" Class="rz-p-4">
-    <!-- Header -->
-    <RadzenCard>
-        <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center">
-            <RadzenText TextStyle="TextStyle.H4">Production System Dashboard</RadzenText>
-            <RadzenBadge BadgeStyle="@GetSystemStatusBadgeStyle()" Text="@GetSystemStatusText()" />
-        </RadzenStack>
-    </RadzenCard>
-
-    <!-- Main Visualization -->
-    <RadzenCard>
-        <ProductionVisualization ProductionData="@_productionData" />
-    </RadzenCard>
-
-    <!-- System Statistics -->
-    <RadzenRow Gap="1rem">
-        <RadzenColumn Size="3">
-            <RadzenCard>
-                <RadzenStack>
-                    <RadzenText TextStyle="TextStyle.H6">Machine Status</RadzenText>
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-                        <RadzenIcon Icon="@GetStatusIcon(_productionData.Machine.Status)" Style="@GetStatusIconStyle(_productionData.Machine.Status)" />
-                        <RadzenText>@_productionData.Machine.Status</RadzenText>
-                    </RadzenStack>
-                    <RadzenText TextStyle="TextStyle.Caption">Temperature: @_productionData.Machine.Temperature.ToString("F1")°C</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Caption">Efficiency: @_productionData.Machine.Efficiency.ToString("F1")%</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Caption">Total Produced: @_productionData.Machine.TotalProduced</RadzenText>
-                </RadzenStack>
-            </RadzenCard>
-        </RadzenColumn>
-
-        <RadzenColumn Size="3">
-            <RadzenCard>
-                <RadzenStack>
-                    <RadzenText TextStyle="TextStyle.H6">Switch Status</RadzenText>
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-                        <RadzenIcon Icon="@GetStatusIcon(_productionData.Switch.Status)" Style="@GetStatusIconStyle(_productionData.Switch.Status)" />
-                        <RadzenText>@_productionData.Switch.Status</RadzenText>
-                    </RadzenStack>
-                    <RadzenText TextStyle="TextStyle.Caption">Processed: @_productionData.Switch.ComponentsProcessed</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Caption">Last Update: @_productionData.Switch.LastUpdated.ToString("HH:mm:ss")</RadzenText>
-                </RadzenStack>
-            </RadzenCard>
-        </RadzenColumn>
-
-        <RadzenColumn Size="6">
-            <RadzenCard>
-                <RadzenStack>
-                    <RadzenText TextStyle="TextStyle.H6">Consumer Status</RadzenText>
-                    <RadzenDataGrid AllowPaging="false" AllowSorting="false" Data="@_productionData.Consumers"
-                                    TItem="Consumer" GridLines="DataGridGridLines.Both">
-                        <Columns>
-                            <RadzenDataGridColumn TItem="Consumer" Property="Name" Title="Consumer" Width="120px" />
-                            <RadzenDataGridColumn TItem="Consumer" Property="Status" Title="Status" Width="80px">
-                                <Template Context="consumer">
-                                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.3rem">
-                                        <RadzenIcon Icon="@GetStatusIcon(consumer.Status)" Style="@GetStatusIconStyle(consumer.Status)" />
-                                        <span style="font-size: 0.8rem;">@consumer.Status</span>
-                                    </RadzenStack>
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="Consumer" Property="BufferPercentage" Title="Buffer" Width="100px">
-                                <Template Context="consumer">
-                                    <RadzenProgressBar Value="@consumer.BufferPercentage" Max="100" Style="height: 15px;" />
-                                    <span style="font-size: 0.7rem;">@consumer.CurrentBuffer/@consumer.BufferCapacity</span>
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="Consumer" Property="ComponentsReceived" Title="Received" Width="70px">
-                                <Template Context="consumer">
-                                    <span style="font-size: 0.8rem;">@consumer.ComponentsReceived</span>
-                                </Template>
-                            </RadzenDataGridColumn>
-                        </Columns>
-                    </RadzenDataGrid>
-                </RadzenStack>
-            </RadzenCard>
-        </RadzenColumn>
-    </RadzenRow>
-
-    <!-- System Info -->
-    <RadzenCard>
-        <RadzenText TextStyle="TextStyle.Caption">
-            Last Update: @_productionData.LastUpdated.ToString("yyyy-MM-dd HH:mm:ss") |
-            Components in Transit: @_productionData.ComponentsInTransit.Count
-        </RadzenText>
-    </RadzenCard>
-</RadzenStack>
+<ProductionVisualization ProductionData="@_productionData" />
 
 @code {
     private ProductionSystem _productionData = new();
@@ -104,33 +16,4 @@
     {
         _productionData = ProductionService.GetCurrentState();
     }
-
-    private string GetSystemStatusText()
-    {
-        return _productionData.IsSystemHealthy ? "System Healthy" : "System Alert";
-    }
-
-    private BadgeStyle GetSystemStatusBadgeStyle()
-    {
-        return _productionData.IsSystemHealthy ? BadgeStyle.Success : BadgeStyle.Danger;
-    }
-
-    private string GetStatusIcon(StationStatus status) => status switch
-    {
-        StationStatus.Running => "play_circle",
-        StationStatus.Stopped => "pause_circle",
-        StationStatus.Error => "error",
-        StationStatus.Maintenance => "build",
-        _ => "help"
-    };
-
-    private string GetStatusIconStyle(StationStatus status) => status switch
-    {
-        StationStatus.Running => "color: #28a745;",
-        StationStatus.Stopped => "color: #ffc107;",
-        StationStatus.Error => "color: #dc3545;",
-        StationStatus.Maintenance => "color: #fd7e14;",
-        _ => "color: #6c757d;"
-    };
-
 }
