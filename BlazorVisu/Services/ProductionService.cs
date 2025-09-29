@@ -6,12 +6,17 @@ namespace BlazorVisu.Services
     public interface IProductionService
     {
         ProductionSystem GetCurrentState();
+        void SetTransportRoute(string switchId, string consumerId);
+        void ClearTransportRoute();
+        event EventHandler<TransportRoute>? TransportRouteChanged;
     }
 
     public class ProductionService : IProductionService
     {
         private readonly ProductionSystem _productionSystem;
         private readonly IWebHostEnvironment _environment;
+
+        public event EventHandler<TransportRoute>? TransportRouteChanged;
 
         public ProductionService(IWebHostEnvironment environment)
         {
@@ -20,6 +25,28 @@ namespace BlazorVisu.Services
         }
 
         public ProductionSystem GetCurrentState() => _productionSystem;
+
+        public void SetTransportRoute(string switchId, string consumerId)
+        {
+            _productionSystem.CurrentTransportRoute = new TransportRoute
+            {
+                TargetSwitchId = switchId,
+                TargetConsumerId = consumerId,
+                IsActive = true
+            };
+
+            TransportRouteChanged?.Invoke(this, _productionSystem.CurrentTransportRoute);
+        }
+
+        public void ClearTransportRoute()
+        {
+            _productionSystem.CurrentTransportRoute = new TransportRoute
+            {
+                IsActive = false
+            };
+
+            TransportRouteChanged?.Invoke(this, _productionSystem.CurrentTransportRoute);
+        }
 
         private ProductionSystem InitializeProductionSystem()
         {

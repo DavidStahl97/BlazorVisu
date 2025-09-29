@@ -59,11 +59,19 @@ namespace BlazorVisu.Models
         public List<Consumer> Consumers { get; set; } = new();
     }
 
+    public class TransportRoute
+    {
+        public string TargetSwitchId { get; set; } = string.Empty;
+        public string TargetConsumerId { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
+    }
+
     public class ProductionSystem
     {
         public Machine Machine { get; set; } = new();
         public List<Switch> Switches { get; set; } = new();
         public List<Consumer> Consumers { get; set; } = new();
         public List<Component> ComponentsInTransit { get; set; } = new();
+        public TransportRoute CurrentTransportRoute { get; set; } = new();
     }
 }

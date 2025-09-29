@@ -1,0 +1,151 @@
+@page "/control"
+@using BlazorVisu.Models
+@using BlazorVisu.Services
+@using Radzen
+@using Radzen.Blazor
+@inject IProductionService ProductionService
+
+<PageTitle>Production Control</PageTitle>
+
+<div class="control-container">
+    <RadzenCard class="control-card">
+        <RadzenText TextStyle="TextStyle.H4" class="mb-4">Production Transport Control</RadzenText>
+
+        <div class="control-row">
+            <RadzenFormField Text="Target Switch:" class="field">
+                <RadzenDropDown @bind-Value="@_selectedSwitchId"
+                               Data="@_switches"
+                               ValueProperty="Id"
+                               TextProperty="Name"
+                               Change="@OnSwitchChanged"
+                               Placeholder="Select Switch..."
+                               class="dropdown" />
+            </RadzenFormField>
+
+            <RadzenFormField Text="Target Consumer:" class="field">
+                <RadzenDropDown @bind-Value="@_selectedConsumerId"
+                               Data="@_availableConsumers"
+                               ValueProperty="Id"
+                               TextProperty="Name"
+                               Change="@OnConsumerChanged"
+                               Placeholder="Select Consumer..."
+                               Disabled="@string.IsNullOrEmpty(_selectedSwitchId)"
+                               class="dropdown" />
+            </RadzenFormField>
+        </div>
+
+        <div class="control-actions">
+            <RadzenButton Text="Start Transport"
+                         ButtonStyle="ButtonStyle.Primary"
+                         Click="@StartTransport"
+                         Disabled="@string.IsNullOrEmpty(_selectedConsumerId)"
+                         class="action-btn" />
+
+            <RadzenButton Text="Stop Transport"
+                         ButtonStyle="ButtonStyle.Secondary"
+                         Click="@StopTransport"
+                         class="action-btn" />
+        </div>
+
+        @if (!string.IsNullOrEmpty(_selectedSwitchId) && !string.IsNullOrEmpty(_selectedConsumerId))
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Info" class="mt-3">
+                <RadzenText>
+                    Active Transport Route: Machine → @_switches.FirstOrDefault(s => s.Id == _selectedSwitchId)?.Name → @_availableConsumers.FirstOrDefault(c => c.Id == _selectedConsumerId)?.Name
+                </RadzenText>
+            </RadzenAlert>
+        }
+    </RadzenCard>
+</div>
+
+<style>
+    .control-container {
+        padding: 2rem;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        min-height: 100vh;
+        background-color: #f5f5f5;
+    }
+
+    .control-card {
+        width: 100%;
+        max-width: 600px;
+        padding: 2rem;
+    }
+
+    .control-row {
+        display: flex;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .field {
+        flex: 1;
+    }
+
+    .dropdown {
+        width: 100%;
+    }
+
+    .control-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+    }
+
+    .action-btn {
+        min-width: 150px;
+    }
+</style>
+
+@code {
+    private string _selectedSwitchId = string.Empty;
+    private string _selectedConsumerId = string.Empty;
+
+    private List<Switch> _switches = new();
+    private List<Consumer> _availableConsumers = new();
+
+    protected override void OnInitialized()
+    {
+        var productionData = ProductionService.GetCurrentState();
+        _switches = productionData.Switches;
+    }
+
+    private void OnSwitchChanged()
+    {
+        _selectedConsumerId = string.Empty;
+
+        if (string.IsNullOrEmpty(_selectedSwitchId))
+        {
+            _availableConsumers.Clear();
+            return;
+        }
+
+        var productionData = ProductionService.GetCurrentState();
+        _availableConsumers = productionData.Consumers
+            .Where(c => c.SwitchId == _selectedSwitchId)
+            .ToList();
+    }
+
+    private void OnConsumerChanged()
+    {
+        // Consumer selection changed - could add additional logic here
+    }
+
+    private void StartTransport()
+    {
+        if (string.IsNullOrEmpty(_selectedSwitchId) || string.IsNullOrEmpty(_selectedConsumerId))
+            return;
+
+        ProductionService.SetTransportRoute(_selectedSwitchId, _selectedConsumerId);
+    }
+
+    private void StopTransport()
+    {
+        ProductionService.ClearTransportRoute();
+        _selectedSwitchId = string.Empty;
+        _selectedConsumerId = string.Empty;
+        _availableConsumers.Clear();
+    }
+}

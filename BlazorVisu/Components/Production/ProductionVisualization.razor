@@ -1,6 +1,9 @@
 @using BlazorVisu.Models
+@using BlazorVisu.Services
 @using Radzen
 @using Radzen.Blazor
+@inject IProductionService ProductionService
+@implements IDisposable
 
 <svg viewBox="0 0 1000 800" class="production-svg">
 
@@ -76,10 +79,16 @@
             var machineY = ProductionData.Machine.Position.Y + 40;
             var switchX = switchStation.Position.X;
             var switchY = switchStation.Position.Y + 40;
+            var isActiveRoute = IsActiveTransportRoute(null, switchStation.Id);
 
             <line x1="@machineX" y1="@machineY" x2="@switchX" y2="@switchY"
-                  stroke="#666" stroke-width="3" stroke-dasharray="5,5">
-                <animate attributeName="stroke-dashoffset" values="10;0" dur="1s" repeatCount="indefinite"/>
+                  stroke="@(isActiveRoute ? "#4caf50" : "#666")"
+                  stroke-width="@(isActiveRoute ? 4 : 3)"
+                  stroke-dasharray="@(isActiveRoute ? "5,5" : "none")">
+                @if (isActiveRoute)
+                {
+                    <animate attributeName="stroke-dashoffset" values="10;0" dur="1s" repeatCount="indefinite"/>
+                }
             </line>
         }
 
@@ -93,10 +102,16 @@
                 var switchY = switchStation.Position.Y + 40;
                 var consumerX = consumer.Position.X;
                 var consumerY = consumer.Position.Y + 40;
+                var isActiveRoute = IsActiveTransportRoute(consumer.SwitchId, consumer.Id);
 
                 <line x1="@switchX" y1="@switchY" x2="@consumerX" y2="@consumerY"
-                      stroke="#666" stroke-width="2" stroke-dasharray="3,3">
-                    <animate attributeName="stroke-dashoffset" values="6;0" dur="0.8s" repeatCount="indefinite"/>
+                      stroke="@(isActiveRoute ? "#4caf50" : "#666")"
+                      stroke-width="@(isActiveRoute ? 3 : 2)"
+                      stroke-dasharray="@(isActiveRoute ? "3,3" : "none")">
+                    @if (isActiveRoute)
+                    {
+                        <animate attributeName="stroke-dashoffset" values="6;0" dur="0.8s" repeatCount="indefinite"/>
+                    }
                 </line>
             }
         }
@@ -160,6 +175,38 @@
     [Parameter] public ProductionSystem ProductionData { get; set; } = new();
 
     private List<Component> ComponentsInTransit => ProductionData.ComponentsInTransit;
+    private TransportRoute _currentTransportRoute = new();
+
+    protected override void OnInitialized()
+    {
+        ProductionService.TransportRouteChanged += OnTransportRouteChanged;
+        _currentTransportRoute = ProductionData.CurrentTransportRoute;
+    }
+
+    private void OnTransportRouteChanged(object? sender, TransportRoute route)
+    {
+        _currentTransportRoute = route;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private bool IsActiveTransportRoute(string? switchId, string targetId)
+    {
+        if (!_currentTransportRoute.IsActive)
+            return false;
+
+        // For machine to switch connections
+        if (switchId == null)
+            return targetId == _currentTransportRoute.TargetSwitchId;
+
+        // For switch to consumer connections
+        return switchId == _currentTransportRoute.TargetSwitchId &&
+               targetId == _currentTransportRoute.TargetConsumerId;
+    }
+
+    public void Dispose()
+    {
+        ProductionService.TransportRouteChanged -= OnTransportRouteChanged;
+    }
 
     private string GetStatusColor(StationStatus status) => status switch
     {
