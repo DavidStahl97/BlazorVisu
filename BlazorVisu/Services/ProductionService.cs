@@ -1,4 +1,5 @@
 using BlazorVisu.Models;
+using System.Text.Json;
 
 namespace BlazorVisu.Services
 {
@@ -10,31 +11,90 @@ namespace BlazorVisu.Services
     public class ProductionService : IProductionService
     {
         private readonly ProductionSystem _productionSystem;
+        private readonly IWebHostEnvironment _environment;
 
-        public ProductionService()
+        public ProductionService(IWebHostEnvironment environment)
         {
+            _environment = environment;
             _productionSystem = InitializeProductionSystem();
         }
 
         public ProductionSystem GetCurrentState() => _productionSystem;
 
-
         private ProductionSystem InitializeProductionSystem()
+        {
+            var configPath = Path.Combine(_environment.WebRootPath, "production-config.json");
+
+            if (File.Exists(configPath))
+            {
+                var jsonContent = File.ReadAllText(configPath);
+                var config = JsonSerializer.Deserialize<ProductionConfig>(jsonContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (config != null)
+                {
+                    return new ProductionSystem
+                    {
+                        Machine = config.Machine,
+                        Switches = config.Switches,
+                        Consumers = config.Consumers,
+                        ComponentsInTransit = new List<Component>()
+                    };
+                }
+            }
+
+            // Fallback to default configuration
+            return CreateDefaultSystem();
+        }
+
+        private ProductionSystem CreateDefaultSystem()
         {
             var system = new ProductionSystem
             {
-                Machine = new Machine { Status = StationStatus.Running },
-                Switch = new Switch { Status = StationStatus.Running }
+                Machine = new Machine
+                {
+                    Id = "MACHINE_01",
+                    Name = "Machine",
+                    Position = new Position { X = 50, Y = 200 },
+                    Status = StationStatus.Running
+                }
             };
 
-            // Initialize 3 consumers
-            for (int i = 1; i <= 3; i++)
+            // Create 2 switches
+            system.Switches.Add(new Switch
             {
-                system.Consumers.Add(new Consumer { Status = StationStatus.Running });
+                Id = "SWITCH_01",
+                Name = "Switch 1",
+                Position = new Position { X = 400, Y = 150 },
+                Status = StationStatus.Running
+            });
+            system.Switches.Add(new Switch
+            {
+                Id = "SWITCH_02",
+                Name = "Switch 2",
+                Position = new Position { X = 400, Y = 350 },
+                Status = StationStatus.Running
+            });
+
+            // Create 10 consumers (5 per switch)
+            for (int i = 1; i <= 10; i++)
+            {
+                var switchId = i <= 5 ? "SWITCH_01" : "SWITCH_02";
+                var yPos = i <= 5 ? 50 + ((i - 1) * 70) : 400 + ((i - 6) * 70);
+
+                system.Consumers.Add(new Consumer
+                {
+                    Id = $"CONSUMER_{i:D2}",
+                    Name = $"Consumer {i}",
+                    SwitchId = switchId,
+                    Position = new Position { X = 750, Y = yPos },
+                    Status = StationStatus.Running
+                });
             }
 
             return system;
         }
-
     }
 }

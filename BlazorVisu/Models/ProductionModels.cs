@@ -15,6 +15,12 @@ namespace BlazorVisu.Models
         Maintenance
     }
 
+    public class Position
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+    }
+
     public class Component
     {
         public ComponentType Type { get; set; }
@@ -23,23 +29,40 @@ namespace BlazorVisu.Models
 
     public class Machine
     {
+        public string Id { get; set; } = "MACHINE_01";
+        public string Name { get; set; } = "Machine";
+        public Position Position { get; set; } = new();
         public StationStatus Status { get; set; } = StationStatus.Running;
     }
 
     public class Switch
     {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public Position Position { get; set; } = new();
         public StationStatus Status { get; set; } = StationStatus.Running;
     }
 
     public class Consumer
     {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string SwitchId { get; set; } = string.Empty;
+        public Position Position { get; set; } = new();
         public StationStatus Status { get; set; } = StationStatus.Running;
+    }
+
+    public class ProductionConfig
+    {
+        public Machine Machine { get; set; } = new();
+        public List<Switch> Switches { get; set; } = new();
+        public List<Consumer> Consumers { get; set; } = new();
     }
 
     public class ProductionSystem
     {
         public Machine Machine { get; set; } = new();
-        public Switch Switch { get; set; } = new();
+        public List<Switch> Switches { get; set; } = new();
         public List<Consumer> Consumers { get; set; } = new();
         public List<Component> ComponentsInTransit { get; set; } = new();
     }

@@ -1,0 +1,120 @@
+{
+  "machine": {
+    "id": "MACHINE_01",
+    "name": "Machine",
+    "position": {
+      "x": 50,
+      "y": 200
+    }
+  },
+  "switches": [
+    {
+      "id": "SWITCH_01",
+      "name": "Switch 1",
+      "position": {
+        "x": 400,
+        "y": 150
+      }
+    },
+    {
+      "id": "SWITCH_02",
+      "name": "Switch 2",
+      "position": {
+        "x": 400,
+        "y": 350
+      }
+    }
+  ],
+  "consumers": [
+    {
+      "id": "CONSUMER_01",
+      "name": "Consumer 1",
+      "switchId": "SWITCH_01",
+      "position": {
+        "x": 750,
+        "y": 50
+      }
+    },
+    {
+      "id": "CONSUMER_02",
+      "name": "Consumer 2",
+      "switchId": "SWITCH_01",
+      "position": {
+        "x": 750,
+        "y": 120
+      }
+    },
+    {
+      "id": "CONSUMER_03",
+      "name": "Consumer 3",
+      "switchId": "SWITCH_01",
+      "position": {
+        "x": 750,
+        "y": 190
+      }
+    },
+    {
+      "id": "CONSUMER_04",
+      "name": "Consumer 4",
+      "switchId": "SWITCH_01",
+      "position": {
+        "x": 750,
+        "y": 260
+      }
+    },
+    {
+      "id": "CONSUMER_05",
+      "name": "Consumer 5",
+      "switchId": "SWITCH_01",
+      "position": {
+        "x": 750,
+        "y": 330
+      }
+    },
+    {
+      "id": "CONSUMER_06",
+      "name": "Consumer 6",
+      "switchId": "SWITCH_02",
+      "position": {
+        "x": 750,
+        "y": 400
+      }
+    },
+    {
+      "id": "CONSUMER_07",
+      "name": "Consumer 7",
+      "switchId": "SWITCH_02",
+      "position": {
+        "x": 750,
+        "y": 470
+      }
+    },
+    {
+      "id": "CONSUMER_08",
+      "name": "Consumer 8",
+      "switchId": "SWITCH_02",
+      "position": {
+        "x": 750,
+        "y": 540
+      }
+    },
+    {
+      "id": "CONSUMER_09",
+      "name": "Consumer 9",
+      "switchId": "SWITCH_02",
+      "position": {
+        "x": 750,
+        "y": 610
+      }
+    },
+    {
+      "id": "CONSUMER_10",
+      "name": "Consumer 10",
+      "switchId": "SWITCH_02",
+      "position": {
+        "x": 750,
+        "y": 680
+      }
+    }
+  ]
+}

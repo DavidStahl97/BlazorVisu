@@ -2,10 +2,10 @@
 @using Radzen
 @using Radzen.Blazor
 
-<svg viewBox="0 0 1000 600" class="production-svg">
+<svg viewBox="0 0 1000 800" class="production-svg">
 
         <!-- Machine -->
-        <g class="station machine" transform="translate(50, 200)">
+        <g class="station machine" transform="translate(@ProductionData.Machine.Position.X, @ProductionData.Machine.Position.Y)">
             <!-- Shadow -->
             <rect width="120" height="80" rx="4" x="2" y="2"
                   fill="rgba(0,0,0,0.1)"/>
@@ -13,7 +13,7 @@
             <rect width="120" height="80" rx="4"
                   fill="@GetStatusColor(ProductionData.Machine.Status)"
                   stroke="@GetBorderColor(ProductionData.Machine.Status)" stroke-width="1"/>
-            <text x="60" y="45" text-anchor="middle" class="station-text">Machine</text>
+            <text x="60" y="45" text-anchor="middle" class="station-text">@ProductionData.Machine.Name</text>
 
             <!-- Production indicator -->
             @if (ProductionData.Machine.Status == StationStatus.Running)
@@ -24,32 +24,32 @@
             }
         </g>
 
-        <!-- Switch/Weiche -->
-        <g class="station switch" transform="translate(400, 200)">
-            <!-- Shadow -->
-            <rect width="80" height="80" rx="4" x="2" y="2"
-                  fill="rgba(0,0,0,0.1)"/>
-            <!-- Main button -->
-            <rect width="80" height="80" rx="4"
-                  fill="@GetStatusColor(ProductionData.Switch.Status)"
-                  stroke="@GetBorderColor(ProductionData.Switch.Status)" stroke-width="1"/>
-            <text x="40" y="45" text-anchor="middle" class="station-text">Switch</text>
+        <!-- Switches -->
+        @foreach (var switchStation in ProductionData.Switches)
+        {
+            <g class="station switch" transform="translate(@switchStation.Position.X, @switchStation.Position.Y)">
+                <!-- Shadow -->
+                <rect width="80" height="80" rx="4" x="2" y="2"
+                      fill="rgba(0,0,0,0.1)"/>
+                <!-- Main button -->
+                <rect width="80" height="80" rx="4"
+                      fill="@GetStatusColor(switchStation.Status)"
+                      stroke="@GetBorderColor(switchStation.Status)" stroke-width="1"/>
+                <text x="40" y="45" text-anchor="middle" class="station-text">@switchStation.Name</text>
 
-            @if (ProductionData.Switch.Status == StationStatus.Running)
-            {
-                <circle cx="65" cy="15" r="3" fill="white">
-                    <animate attributeName="opacity" values="1;0.3;1" dur="0.8s" repeatCount="indefinite"/>
-                </circle>
-            }
-        </g>
+                @if (switchStation.Status == StationStatus.Running)
+                {
+                    <circle cx="65" cy="15" r="3" fill="white">
+                        <animate attributeName="opacity" values="1;0.3;1" dur="0.8s" repeatCount="indefinite"/>
+                    </circle>
+                }
+            </g>
+        }
 
         <!-- Consumers -->
-        @for (int i = 0; i < ProductionData.Consumers.Count; i++)
+        @foreach (var consumer in ProductionData.Consumers)
         {
-            var consumer = ProductionData.Consumers[i];
-            var yPosition = 100 + (i * 150);
-
-            <g class="station consumer" transform="translate(750, @yPosition)">
+            <g class="station consumer" transform="translate(@consumer.Position.X, @consumer.Position.Y)">
                 <!-- Shadow -->
                 <rect width="120" height="80" rx="4" x="2" y="2"
                       fill="rgba(0,0,0,0.1)"/>
@@ -57,8 +57,7 @@
                 <rect width="120" height="80" rx="4"
                       fill="@GetStatusColor(consumer.Status)"
                       stroke="@GetBorderColor(consumer.Status)" stroke-width="1"/>
-                <text x="60" y="45" text-anchor="middle" class="station-text">Consumer @(i+1)</text>
-
+                <text x="60" y="45" text-anchor="middle" class="station-text">@consumer.Name</text>
 
                 @if (consumer.Status == StationStatus.Running)
                 {
@@ -70,20 +69,36 @@
         }
 
         <!-- Connection Lines -->
-        <!-- Machine to Switch -->
-        <line x1="170" y1="240" x2="400" y2="240"
-              stroke="#666" stroke-width="3" stroke-dasharray="5,5">
-            <animate attributeName="stroke-dashoffset" values="10;0" dur="1s" repeatCount="indefinite"/>
-        </line>
+        <!-- Machine to Switches -->
+        @foreach (var switchStation in ProductionData.Switches)
+        {
+            var machineX = ProductionData.Machine.Position.X + 120;
+            var machineY = ProductionData.Machine.Position.Y + 40;
+            var switchX = switchStation.Position.X;
+            var switchY = switchStation.Position.Y + 40;
+
+            <line x1="@machineX" y1="@machineY" x2="@switchX" y2="@switchY"
+                  stroke="#666" stroke-width="3" stroke-dasharray="5,5">
+                <animate attributeName="stroke-dashoffset" values="10;0" dur="1s" repeatCount="indefinite"/>
+            </line>
+        }
 
         <!-- Switch to Consumers -->
-        @for (int i = 0; i < ProductionData.Consumers.Count; i++)
+        @foreach (var consumer in ProductionData.Consumers)
         {
-            var yPosition = 140 + (i * 150);
-            <line x1="480" y1="240" x2="750" y2="@yPosition"
-                  stroke="#666" stroke-width="2" stroke-dasharray="3,3">
-                <animate attributeName="stroke-dashoffset" values="6;0" dur="0.8s" repeatCount="indefinite"/>
-            </line>
+            var switchStation = ProductionData.Switches.FirstOrDefault(s => s.Id == consumer.SwitchId);
+            if (switchStation != null)
+            {
+                var switchX = switchStation.Position.X + 80;
+                var switchY = switchStation.Position.Y + 40;
+                var consumerX = consumer.Position.X;
+                var consumerY = consumer.Position.Y + 40;
+
+                <line x1="@switchX" y1="@switchY" x2="@consumerX" y2="@consumerY"
+                      stroke="#666" stroke-width="2" stroke-dasharray="3,3">
+                    <animate attributeName="stroke-dashoffset" values="6;0" dur="0.8s" repeatCount="indefinite"/>
+                </line>
+            }
         }
 
         <!-- Animated Components in Transit -->
@@ -174,18 +189,66 @@
 
     private string GetComponentPath(Component component)
     {
-        // Determine path based on component's journey
-        if (component.CurrentStationId == "MACHINE_01")
+        if (component.CurrentStationId == ProductionData.Machine.Id)
         {
-            return "M 170 240 L 400 240";  // Machine to Switch
+            // Component is at machine - path to first switch as example
+            var firstSwitch = ProductionData.Switches.FirstOrDefault();
+            if (firstSwitch != null)
+            {
+                var machineX = ProductionData.Machine.Position.X + 120;
+                var machineY = ProductionData.Machine.Position.Y + 40;
+                var switchX = firstSwitch.Position.X;
+                var switchY = firstSwitch.Position.Y + 40;
+                return $"M {machineX} {machineY} L {switchX} {switchY}";
+            }
+        }
+        else if (component.CurrentStationId?.StartsWith("SWITCH") == true)
+        {
+            // Component is at switch - path to random consumer of that switch
+            var switchStation = ProductionData.Switches.FirstOrDefault(s => s.Id == component.CurrentStationId);
+            if (switchStation != null)
+            {
+                var consumers = ProductionData.Consumers.Where(c => c.SwitchId == switchStation.Id).ToList();
+                if (consumers.Any())
+                {
+                    var targetConsumer = consumers.First(); // Could be random
+                    var switchX = switchStation.Position.X + 80;
+                    var switchY = switchStation.Position.Y + 40;
+                    var consumerX = targetConsumer.Position.X;
+                    var consumerY = targetConsumer.Position.Y + 40;
+                    return $"M {switchX} {switchY} L {consumerX} {consumerY}";
+                }
+            }
         }
         else if (component.CurrentStationId?.StartsWith("CONSUMER") == true)
         {
-            var consumerIndex = int.Parse(component.CurrentStationId.Replace("CONSUMER_", "")) - 1;
-            var yPosition = 140 + (consumerIndex * 150);
-            return $"M 480 240 L 750 {yPosition}";  // Switch to Consumer
+            // Component is at consumer - find its position
+            var consumer = ProductionData.Consumers.FirstOrDefault(c => c.Id == component.CurrentStationId);
+            if (consumer != null)
+            {
+                var switchStation = ProductionData.Switches.FirstOrDefault(s => s.Id == consumer.SwitchId);
+                if (switchStation != null)
+                {
+                    var switchX = switchStation.Position.X + 80;
+                    var switchY = switchStation.Position.Y + 40;
+                    var consumerX = consumer.Position.X;
+                    var consumerY = consumer.Position.Y + 40;
+                    return $"M {switchX} {switchY} L {consumerX} {consumerY}";
+                }
+            }
         }
 
-        return "M 170 240 L 400 240";  // Default path
+        // Default fallback path
+        var defaultSwitch = ProductionData.Switches.FirstOrDefault();
+        if (defaultSwitch != null)
+        {
+            var machineX = ProductionData.Machine.Position.X + 120;
+            var machineY = ProductionData.Machine.Position.Y + 40;
+            var switchX = defaultSwitch.Position.X;
+            var switchY = defaultSwitch.Position.Y + 40;
+            return $"M {machineX} {machineY} L {switchX} {switchY}";
+        }
+
+        return "M 170 240 L 400 240";
     }
 }
