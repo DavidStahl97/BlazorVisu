@@ -58,17 +58,17 @@
             var consumerPos = GetConsumerPosition(i);
             <g class="station consumer" transform="translate(@consumerPos.X, @consumerPos.Y)">
                 <!-- Shadow -->
-                <rect width="120" height="80" rx="4" x="2" y="2"
+                <rect width="90" height="60" rx="4" x="2" y="2"
                       fill="rgba(0,0,0,0.1)"/>
                 <!-- Main button -->
-                <rect width="120" height="80" rx="4"
+                <rect width="90" height="60" rx="4"
                       fill="@GetStatusColor(consumer.Status)"
                       stroke="@GetBorderColor(consumer.Status)" stroke-width="1"/>
-                <text x="60" y="45" text-anchor="middle" class="station-text">@consumer.Name</text>
+                <text x="45" y="35" text-anchor="middle" class="station-text">@consumer.Name</text>
 
                 @if (consumer.Status == StationStatus.Running)
                 {
-                    <circle cx="105" cy="12" r="4" fill="white">
+                    <circle cx="78" cy="10" r="3" fill="white">
                         <animate attributeName="opacity" values="1;0.3;1" dur="1.2s" repeatCount="indefinite"/>
                     </circle>
                 }
@@ -110,7 +110,7 @@
                 var consumerPos = GetConsumerPosition(i);
                 var switchX = switchPos.X + 40; // Switch Mitte (80px/2)
                 var switchY = switchPos.Y + 80; // Switch Unten
-                var consumerX = consumerPos.X + 60; // Consumer Mitte (120px/2)
+                var consumerX = consumerPos.X + 45; // Consumer Mitte (90px/2)
                 var consumerY = consumerPos.Y; // Consumer Oben
                 var isActiveRoute = IsActiveTransportRoute(consumer.SwitchId, consumer.Id);
 
@@ -237,9 +237,9 @@
 
     private Position GetConsumerPosition(int consumerIndex)
     {
-        // Consumer-Dimensionen: 120px breit, 80px hoch
-        const int consumerWidth = 120;
-        const int consumerSpacing = 30; // Fester Abstand zwischen Consumern
+        // Consumer-Dimensionen: 90px breit, 60px hoch (verkleinert)
+        const int consumerWidth = 90;
+        const int consumerSpacing = 15; // Reduzierter Abstand
 
         var consumersPerSwitch = ProductionData.Consumers.Count / ProductionData.Switches.Count;
         var switchIndex = consumerIndex / consumersPerSwitch;
@@ -247,15 +247,17 @@
 
         // Berechne X-Position basierend auf Consumer-Breite + Spacing
         var totalWidthPerConsumer = consumerWidth + consumerSpacing;
-        var groupWidth = consumersPerSwitch * totalWidthPerConsumer - consumerSpacing; // Letzter Consumer braucht kein Spacing
+        var groupWidth = consumersPerSwitch * totalWidthPerConsumer - consumerSpacing;
 
-        // Startposition für erste Gruppe - zentriert unter Switch 1
-        var switch1X = GetSwitchPosition(0).X + 40; // Switch Mitte (80px/2)
-        var group1StartX = switch1X - (groupWidth / 2);
+        // Verwende die gesamte verfügbare Breite besser aus
+        const int viewBoxWidth = 1000;
+        const int groupSpacing = 80; // Abstand zwischen den beiden Consumer-Gruppen
+        var totalContentWidth = (groupWidth * 2) + groupSpacing;
+        var contentStartX = (viewBoxWidth - totalContentWidth) / 2;
 
-        // Startposition für zweite Gruppe - zentriert unter Switch 2
-        var switch2X = GetSwitchPosition(1).X + 40; // Switch Mitte
-        var group2StartX = switch2X - (groupWidth / 2);
+        // Startpositionen für beide Gruppen
+        var group1StartX = contentStartX;
+        var group2StartX = contentStartX + groupWidth + groupSpacing;
 
         const int shadowOffset = 2; // Shadow-Effekt kompensieren
 
