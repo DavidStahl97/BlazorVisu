@@ -223,16 +223,35 @@
 
     private Position GetSwitchPosition(int switchIndex)
     {
-        // Switches horizontal verteilt und zentriert basierend auf viewBox
-        const int viewBoxWidth = 1000;
+        // Switch horizontal zentriert über seiner Consumer-Gruppe
         const int switchWidth = 80;
-        const int switchSpacing = 100; // Abstand zwischen Switches
         const int shadowOffset = 2; // Shadow-Effekt kompensieren
 
-        var totalWidth = (ProductionData.Switches.Count * switchWidth) + ((ProductionData.Switches.Count - 1) * switchSpacing);
-        var startX = (viewBoxWidth - totalWidth) / 2 - shadowOffset; // Zentriert mit Shadow-Kompensation
+        // Berechne die Consumer-Gruppierung (5 Consumer pro Switch)
+        var consumersPerSwitch = ProductionData.Consumers.Count / ProductionData.Switches.Count;
 
-        return new Position { X = startX + (switchIndex * (switchWidth + switchSpacing)), Y = 300 };
+        // Consumer-Dimensionen und Spacing (gleich wie in GetConsumerPosition)
+        const int consumerWidth = 90;
+        const int consumerSpacing = 15;
+        var totalWidthPerConsumer = consumerWidth + consumerSpacing;
+        var groupWidth = consumersPerSwitch * totalWidthPerConsumer - consumerSpacing;
+
+        // Berechne die Start-Position der Consumer-Gruppe für diesen Switch
+        const int viewBoxWidth = 1000;
+        const int groupSpacing = 80; // Abstand zwischen den beiden Consumer-Gruppen
+        var totalContentWidth = (groupWidth * 2) + groupSpacing;
+        var contentStartX = (viewBoxWidth - totalContentWidth) / 2;
+
+        // Startpositionen für beide Gruppen
+        var group1StartX = contentStartX;
+        var group2StartX = contentStartX + groupWidth + groupSpacing;
+
+        var groupStartX = switchIndex == 0 ? group1StartX : group2StartX;
+
+        // Switch in der Mitte der Consumer-Gruppe positionieren
+        var switchCenterX = groupStartX + (groupWidth / 2) - (switchWidth / 2) - shadowOffset;
+
+        return new Position { X = (int)switchCenterX, Y = 300 };
     }
 
     private Position GetConsumerPosition(int consumerIndex)
