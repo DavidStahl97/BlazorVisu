@@ -4,49 +4,56 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-BlazorVisu is a .NET Blazor visualization project. This repository is currently in its initial state with only basic configuration files.
+BlazorVisu is a .NET 8 Blazor Server application using Radzen UI components for visualization. The project uses the latest C# 12 language features and provides a modern web application foundation.
 
 ## Development Commands
 
-Since this is a new Blazor project, the typical .NET development commands will apply once the project structure is created:
-
 ```bash
-# Create a new Blazor Server project (if needed)
-dotnet new blazorserver -n BlazorVisu
-
-# Create a new Blazor WebAssembly project (if needed)
-dotnet new blazorwasm -n BlazorVisu
-
-# Restore dependencies
+# Restore dependencies (solution level)
 dotnet restore
 
-# Build the project
+# Build the solution
 dotnet build
 
 # Run the project in development mode
-dotnet run
+dotnet run --project BlazorVisu
+
+# Run in watch mode (auto-reload on changes)
+dotnet watch run --project BlazorVisu
 
 # Run tests
 dotnet test
 
 # Publish for production
-dotnet publish -c Release
+dotnet publish BlazorVisu -c Release
 ```
 
 ## Project Structure
 
-This repository currently contains only:
-- README.md - Basic project description
-- LICENSE - Project license
-- .gitignore - Standard Visual Studio/.NET gitignore configuration
+- **BlazorVisu.sln** - Visual Studio solution file
+- **BlazorVisu/** - Main project directory
+  - **Components/** - Blazor components
+    - **Layout/** - Layout components (MainLayout.razor)
+    - **Pages/** - Page components (Home, Counter, Weather)
+  - **Pages/** - Razor pages (_Host.cshtml, _Layout.cshtml)
+  - **wwwroot/** - Static web assets (CSS, JS)
+  - **Program.cs** - Application entry point with Radzen configuration
+  - **App.razor** - Root application component
+  - **BlazorVisu.csproj** - Project file
 
-The project appears to be set up for Blazor development based on the name "BlazorVisu" and the Visual Studio gitignore configuration. Once source code is added, the typical Blazor project structure would include:
-- Pages/ - Blazor pages and components
-- Components/ - Reusable Blazor components  
-- Models/ - Data models
-- Services/ - Business logic services
-- wwwroot/ - Static web assets
+## Technology Stack
 
-## Notes
+- **.NET 8** with C# 12
+- **Blazor Server** - Server-side rendering with SignalR
+- **Radzen Blazor Components** - UI component library
+- **Radzen.Blazor 4.32.0** - Latest Radzen package
 
-This is a newly initialized repository. When adding the actual Blazor project files, ensure to follow Blazor conventions for component organization and naming.
+## Key Features
+
+- Responsive layout with sidebar navigation using RadzenLayout
+- Sample pages demonstrating Radzen components:
+  - Home page with cards and buttons
+  - Counter with progress visualization
+  - Weather data grid with filtering and paging
+- Material Design theme from Radzen
+- Server-side prerendering for better performance
